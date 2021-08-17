@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/philippheitmann/code/Heity94/TaxiFareModel/mlruns/1/c66b7e1ab1224dcaabe01ca45d948c37/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: c66b7e1ab1224dcaabe01ca45d948c37
+run_uuid: c66b7e1ab1224dcaabe01ca45d948c37
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1629201984978
+status: 1
+tags: []
+user_id: unknown
