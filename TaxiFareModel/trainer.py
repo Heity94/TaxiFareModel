@@ -2,7 +2,7 @@
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from TaxiFareModel.encoders import TimeFeaturesEncoder, DistanceTransformer
 from TaxiFareModel.data import get_data, clean_data
 from TaxiFareModel.utils import compute_rmse
@@ -11,12 +11,15 @@ from mlflow.tracking import MlflowClient
 from memoized_property import memoized_property
 
 import mlflow
+import joblib
+
 
 class Trainer():
 
     def __init__(self,
                  X,
                  y,
+                 model,
                  experiment_name="[DE] [Berlin] [Heity94] TaxiFareModel v1"):
         """
             X: pandas DataFrame
@@ -26,6 +29,7 @@ class Trainer():
         self.X = X
         self.y = y
         self.experiment_name = experiment_name
+        self.model = model
 
 
     #MLFLOW
@@ -80,7 +84,7 @@ class Trainer():
         # Add the model of your choice to the pipeline
         self.pipeline = Pipeline([
             ('preproc', preproc_pipe),
-            ('model', LinearRegression())
+            ('model', self.model)
         ])
         return self.pipeline
 
@@ -101,10 +105,14 @@ class Trainer():
         self.mlflow_run
         self.mlflow_log_param("model", self.pipeline["model"])
         self.mlflow_log_metric("RMSE", self.score)
-        experiment_id = trainer.mlflow_experiment_id
+        experiment_id = self.mlflow_experiment_id
         print(f"experiment URL: https://mlflow.lewagon.co/#/experiments/{experiment_id}")
 
         return rmse
+
+    def save_model(self):
+        """ Save the trained model into a model.joblib file """
+        joblib.dump(self.pipeline, 'model.joblib')
 
 
 if __name__ == "__main__":
@@ -121,14 +129,15 @@ if __name__ == "__main__":
     # hold out
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.15)
 
+
     #instanciate trainer
     trainer = Trainer(X_train, y_train)
-
-    # build pipeline
-    #trainer.set_pipeline()
 
     # train the pipeline
     trainer.run()
 
-    # evaluate the pipeline
+    # evaluate the pipeline + upload on MLFlow
     trainer.evaluate(X_val, y_val)
+
+    #save model
+    trainer.save_model()
